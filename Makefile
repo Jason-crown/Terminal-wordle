@@ -1,22 +1,35 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wpedantic -std=c11
-
+CFLAGS = -std=c11 -Wall -Wextra -pedantic
 TARGET = wordle
+OBJ = main.o wordle.o
+EXE = wordle.exe
 
-SRC = src/main.c src/wordle.c
-OBJ = src/main.o src/wordle.o
+ifeq ($(OS), Windows_NT)
+    DELETE = del
+else
+    DELETE = rm -f
+endif
+
+all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -o $(TARGET)
+	$(CC) $(CFLAGS) $^ -o $(TARGET)
 
-src/main.o: src/main.c
-	$(CC) $(CFLAGS) -Iinclude -c src/main.c -o src/main.o
-
-src/wordle.o: src/wordle.c
-	$(CC) $(CFLAGS) -Iinclude -c src/wordle.c -o src/wordle.o
+%.o: src/%.c include/wordle.h
+	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
 
 clean:
-	cmd /C "del /Q src\main.o src\wordle.o wordle.exe"
+	$(DELETE) $(OBJ) $(TARGET)
+
+ifeq ($(OS), Windows_NT)
+	$(DELETE) $(EXE)
+endif
+
+fix:
+	make clean
+	make run
+
+.PHONY: all clean fix run
 
 run: $(TARGET)
-	$(TARGET).exe
+	./$(TARGET)
