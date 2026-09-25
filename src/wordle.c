@@ -2,10 +2,51 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 #include "wordle.h"
 
 #define MAX_WORDS 100
+
+/* ANSI color escape sequences */
+#define GREEN  "\033[32m"
+#define YELLOW "\033[33m"
+#define GRAY   "\033[90m"
+#define RESET  "\033[0m"
+
+
+void print_line(void)
+{
+    printf("+---+---+---+---+---+\n");
+}
+
+void print_empty_board(char board[MAX_GUESSES][WORD_LENGTH + 1])
+{
+    printf("\n");
+
+    for (int row = 0; row < MAX_GUESSES; row++)
+    {
+        print_line();
+
+        printf("|");
+
+        for (int col = 0; col < WORD_LENGTH; col++)
+        {
+            if (board[row][col] == '\0')
+            {
+                printf("   |");
+            }
+            else
+            {
+                printf(" %c |", board[row][col]);
+            }
+        }
+
+        printf("\n");
+    }
+
+    print_line();
+}
 
 void play_game(void)
 {
