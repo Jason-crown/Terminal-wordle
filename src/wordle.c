@@ -8,23 +8,16 @@
 
 #define MAX_WORDS 100
 
-/* ANSI color escape sequences */
 #define GREEN  "\033[32m"
 #define YELLOW "\033[33m"
 #define GRAY   "\033[90m"
 #define RESET  "\033[0m"
 
-/*
- * Draw the top/bottom of the board.
- */
 void print_line(void)
 {
     printf("+---+---+---+---+---+\n");
 }
 
-/*
- * Print an empty board at the beginning of the game.
- */
 void print_empty_board(char board[MAX_GUESSES][WORD_LENGTH + 1])
 {
     printf("\n");
@@ -53,9 +46,6 @@ void print_empty_board(char board[MAX_GUESSES][WORD_LENGTH + 1])
     print_line();
 }
 
-/*
- * Print the board with colored letters.
- */
 void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1],
                  char answer[WORD_LENGTH + 1],
                  int rows)
@@ -78,10 +68,6 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1],
 
             char letter = board[row][col];
 
-            /*
-             * Green:
-             * Letter is in the correct position.
-             */
             if (letter == answer[col])
             {
                 printf(" %s%c%s |", GREEN, letter, RESET);
@@ -90,10 +76,6 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1],
             {
                 int found = 0;
 
-                /*
-                 * Yellow:
-                 * Letter exists somewhere else in the answer.
-                 */
                 for (int i = 0; i < WORD_LENGTH; i++)
                 {
                     if (letter == answer[i])
@@ -120,9 +102,6 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1],
     print_line();
 }
 
-/*
- * Load words from words.txt.
- */
 int load_words(char words[MAX_WORDS][WORD_LENGTH + 1])
 {
     FILE *file = fopen("words.txt", "r");
@@ -138,9 +117,6 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1])
     while (count < MAX_WORDS &&
            fscanf(file, "%5s", words[count]) == 1)
     {
-        /*
-         * Convert the word to lowercase.
-         */
         for (int i = 0; i < WORD_LENGTH; i++)
         {
             words[count][i] =
@@ -155,9 +131,6 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1])
     return count;
 }
 
-/*
- * Play the Wordle game.
- */
 void play_game(void)
 {
     char words[MAX_WORDS][WORD_LENGTH + 1];
@@ -171,16 +144,10 @@ void play_game(void)
 
     srand((unsigned int)time(NULL));
 
-    /*
-     * Pick a random answer.
-     */
     char answer[WORD_LENGTH + 1];
 
     strcpy(answer, words[rand() % word_count]);
 
-    /*
-     * The game board.
-     */
     char board[MAX_GUESSES][WORD_LENGTH + 1] = {0};
 
     printf("\n");
@@ -206,18 +173,12 @@ void play_game(void)
 
         scanf("%5s", guess);
 
-        /*
-         * Convert guess to lowercase.
-         */
         for (int i = 0; i < WORD_LENGTH; i++)
         {
             guess[i] =
                 (char)tolower((unsigned char)guess[i]);
         }
 
-        /*
-         * Make sure the guess is exactly 5 letters.
-         */
         if (strlen(guess) != WORD_LENGTH)
         {
             printf("Please enter exactly 5 letters.\n");
@@ -226,14 +187,8 @@ void play_game(void)
             continue;
         }
 
-        /*
-         * Store the guess on the board.
-         */
         strcpy(board[attempt], guess);
 
-        /*
-         * Check if the player won.
-         */
         if (strcmp(guess, answer) == 0)
         {
             print_board(board, answer, attempt + 1);
@@ -246,9 +201,6 @@ void play_game(void)
         }
     }
 
-    /*
-     * Player used all six guesses.
-     */
     print_board(board, answer, MAX_GUESSES);
 
     printf("\nThe word was: %s\n", answer);
