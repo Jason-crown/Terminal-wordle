@@ -16,18 +16,17 @@
 
 
 // Draw the top/bottom of the board.
-void print_line(void)
-{
-    printf("+---+---+---+---+---+\n");
+void print_line(void) {
+    printf("+");
+    for (int i = 0; i < WORD_LENGTH; i++) printf("---+");
+    printf("\n");
 }
-
 // Print an empty board at the beginning of the game.
 void print_empty_board(char board[MAX_GUESSES][WORD_LENGTH + 1]) {
     printf("\n");
 
     for (int row = 0; row < MAX_GUESSES; row++) {
         print_line();
-
         printf("|");
 
         for (int col = 0; col < WORD_LENGTH; col++) {
@@ -41,7 +40,6 @@ void print_empty_board(char board[MAX_GUESSES][WORD_LENGTH + 1]) {
 
         printf("\n");
     }
-
     print_line();
 }
 
