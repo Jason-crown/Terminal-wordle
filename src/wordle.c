@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <conio.h>
 
 #include "wordle.h"
 
@@ -111,6 +112,130 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENG
     print_line();
 }
 
+// Print the board while the player is typing.
+void print_typing_board(
+    char board[MAX_GUESSES][WORD_LENGTH + 1],
+    char current_guess[WORD_LENGTH + 1],
+    int current_row,
+    char answer[WORD_LENGTH + 1])
+{
+    printf("\033[H\033[J");
+
+    printf("=============================\n");
+    printf("          C WORDLE\n");
+    printf("=============================\n");
+
+    printf("\n");
+    printf("Guess the %d-letter word!\n", WORD_LENGTH);
+    printf("%sGreen%s  = correct position\n", GREEN, RESET);
+    printf("%sYellow%s = correct letter\n", YELLOW, RESET);
+    printf("%sGray%s   = not in the word\n", GRAY, RESET);
+
+    printf("\n");
+
+    for (int row = 0; row < MAX_GUESSES; row++) {
+        print_line();
+
+        printf("|");
+
+        for (int col = 0; col < WORD_LENGTH; col++) {
+
+            if (row == current_row) {
+                // Currently typing this row.
+                if (current_guess[col] != '\0') {
+                    printf(" %c |", current_guess[col]);
+                }
+                else {
+                    printf("   |");
+                }
+            }
+            else {
+                // Already submitted rows.
+                if (board[row][col] != '\0') {
+                    char letter = board[row][col];
+
+                    if (letter == answer[col]) {
+                        printf(" %s%c%s |",
+                               GREEN,
+                               letter,
+                               RESET);
+                    }
+                    else {
+                        int found = 0;
+
+                        for (int i = 0; i < WORD_LENGTH; i++) {
+                            if (letter == answer[i]) {
+                                found = 1;
+                                break;
+                            }
+                        }
+
+                        if (found) {
+                            printf(" %s%c%s |",
+                                   YELLOW,
+                                   letter,
+                                   RESET);
+                        }
+                        else {
+                            printf(" %s%c%s |",
+                                   GRAY,
+                                   letter,
+                                   RESET);
+                        }
+                    }
+                }
+                else {
+                    printf("   |");
+                }
+            }
+        }
+
+        printf("\n");
+    }
+
+    print_line();
+}
+
+// Get a guess one character at a time.
+void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH + 1], int current_row, char answer[WORD_LENGTH + 1]) {
+    int position = 0;
+    guess[0] = '\0';
+
+    while (1) {
+        print_typing_board(board, guess, current_row, answer);
+        char key = _getch();
+        // Q = quit the game
+        if (key == '\033') {
+            printf("\n\nGame exited.\n");
+            exit(0);
+        }
+
+        // ENTER
+        if (key == '\r') {
+            if (position == WORD_LENGTH) break;
+            continue;
+        }
+
+        // BACKSPACE
+        if (key == '\b') {
+            if (position > 0) {
+                position--;
+                guess[position] = '\0';
+            }
+            continue;
+        }
+
+        // Only accept letters.
+        if (isalpha((unsigned char)key)) {
+            if (position < WORD_LENGTH) {
+                guess[position] = (char)tolower((unsigned char)key);
+                position++;
+                guess[position] = '\0';
+            }
+        }
+    }
+}
+
 // Load words from words.txt.
 int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
     FILE *file = fopen("words.txt", "r");
@@ -130,93 +255,44 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
         }
 
         // Convert the word to lowercase.
-        for (int i = 0; i < WORD_LENGTH; i++) {
-            word[i] = (char)tolower((unsigned char)word[i]);
-        }
+        for (int i = 0; i < WORD_LENGTH; i++) word[i] = (char)tolower((unsigned char)word[i]);
         strcpy(words[count], word);
         count++;
     }
-
     fclose(file);
-
     return count;
 }
-// Check if a guess exists in words.txt.
-int is_valid_word(char guess[WORD_LENGTH + 1],
-                  char words[MAX_WORDS][WORD_LENGTH + 1],
-                  int word_count)
-{
-    for (int i = 0; i < word_count; i++) {
-        if (strcmp(guess, words[i]) == 0) {
-            return 1;
-        }
-    }
 
+// Check if a guess exists in words.txt.
+int is_valid_word(char guess[WORD_LENGTH + 1], char words[MAX_WORDS][WORD_LENGTH + 1], int word_count) {
+    for (int i = 0; i < word_count; i++) {
+        if (strcmp(guess, words[i]) == 0) return 1;
+    }
     return 0;
 }
 
 // Play the Wordle game.
-void play_game(void)
-{
+void play_game(void) {
     char words[MAX_WORDS][WORD_LENGTH + 1];
-
     int word_count = load_words(words);
-
-    if (word_count == 0) {
-        return;
-    }
-
+    if (word_count == 0) return;
     srand((unsigned int)time(NULL));
 
     // Pick a random answer.
     char answer[WORD_LENGTH + 1];
-
     strcpy(answer, words[rand() % word_count]);
 
     // The game board.
     char board[MAX_GUESSES][WORD_LENGTH + 1] = {0};
 
-    printf("\n");
-    printf("=============================\n");
-    printf("          C WORDLE\n");
-    printf("=============================\n");
-
-    printf("\n");
-    printf("Guess the %d-letter word!\n", WORD_LENGTH);
-    printf("%sGreen%s  = correct position\n", GREEN, RESET);
-    printf("%sYellow%s = correct letter\n", YELLOW, RESET);
-    printf("%sGray%s   = not in the word\n", GRAY, RESET);
-
     for (int attempt = 0; attempt < MAX_GUESSES; attempt++) {
-
-        print_board(board, answer);
-
-        printf("\nGuess %d/%d: ",
-               attempt + 1,
-               MAX_GUESSES);
-
-        char guess[WORD_LENGTH + 1];
-        char input[100];
-
-        scanf("%99s", input);
-
-        // Check that the guess has the correct number of letters.
-        if (strlen(input) != WORD_LENGTH) {
-            printf("Please enter exactly %d letters.\n", WORD_LENGTH);
-            attempt--;
-            continue;
-        }
-
-        // Convert the guess to lowercase.
-        for (int i = 0; i < WORD_LENGTH; i++) {
-            input[i] = (char)tolower((unsigned char)input[i]);
-        }
-
-        strcpy(guess, input);
+        char guess[WORD_LENGTH + 1] = {0};
+        // Get the guess while displaying it inside the board.
+        get_guess(guess, board, attempt, answer);
 
         // Check if the guess exists in words.txt.
         if (!is_valid_word(guess, words, word_count)) {
-            printf("That word is not in the word list.\n");
+            printf("\nThat word is not in the word list.\n");
             attempt--;
             continue;
         }
@@ -227,18 +303,13 @@ void play_game(void)
         // Check if the player won.
         if (strcmp(guess, answer) == 0) {
             print_board(board, answer);
-
-            printf("\n%sYou got it!%s\n\n",
-                   GREEN,
-                   RESET);
-
+            printf("\n%sYou got it!%s\n\n", GREEN, RESET);
             return;
         }
     }
 
     // Player used all guesses.
     print_board(board, answer);
-
     printf("\nThe word was: %s\n", answer);
     printf("Better luck next time!\n\n");
 }
