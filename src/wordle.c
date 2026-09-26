@@ -141,10 +141,23 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
 
     return count;
 }
+// Check if a guess exists in words.txt.
+int is_valid_word(char guess[WORD_LENGTH + 1],
+                  char words[MAX_WORDS][WORD_LENGTH + 1],
+                  int word_count)
+{
+    for (int i = 0; i < word_count; i++) {
+        if (strcmp(guess, words[i]) == 0) {
+            return 1;
+        }
+    }
 
+    return 0;
+}
 
 // Play the Wordle game.
-void play_game(void) {
+void play_game(void)
+{
     char words[MAX_WORDS][WORD_LENGTH + 1];
 
     int word_count = load_words(words);
@@ -175,6 +188,7 @@ void play_game(void) {
     printf("%sGray%s   = not in the word\n", GRAY, RESET);
 
     for (int attempt = 0; attempt < MAX_GUESSES; attempt++) {
+
         print_board(board, answer);
 
         printf("\nGuess %d/%d: ",
@@ -186,22 +200,28 @@ void play_game(void) {
 
         scanf("%99s", input);
 
+        // Check that the guess has the correct number of letters.
         if (strlen(input) != WORD_LENGTH) {
             printf("Please enter exactly %d letters.\n", WORD_LENGTH);
             attempt--;
             continue;
         }
 
-        // Convert input to lowercase.
+        // Convert the guess to lowercase.
         for (int i = 0; i < WORD_LENGTH; i++) {
-            input[i] =
-                (char)tolower((unsigned char)input[i]);
+            input[i] = (char)tolower((unsigned char)input[i]);
         }
 
-        // Copy the input into guess.
         strcpy(guess, input);
 
-        // Store the guess on the board.
+        // Check if the guess exists in words.txt.
+        if (!is_valid_word(guess, words, word_count)) {
+            printf("That word is not in the word list.\n");
+            attempt--;
+            continue;
+        }
+
+        // Store the valid guess on the board.
         strcpy(board[attempt], guess);
 
         // Check if the player won.
@@ -216,7 +236,7 @@ void play_game(void) {
         }
     }
 
-    // Player used all six guesses.
+    // Player used all guesses.
     print_board(board, answer);
 
     printf("\nThe word was: %s\n", answer);
