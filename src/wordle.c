@@ -112,8 +112,7 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENG
 }
 
 // Load words from words.txt.
-int load_words(char words[MAX_WORDS][WORD_LENGTH + 1])
-{
+int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
     FILE *file = fopen("words.txt", "r");
 
     if (file == NULL) {
@@ -122,14 +121,19 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1])
     }
 
     int count = 0;
+    char word[100];
 
-    while (count < MAX_WORDS && fscanf(file, "%5s", words[count]) == 1) {
-        // Convert the word to lowercase.
-        for (int i = 0; i < WORD_LENGTH; i++)
-        {
-            words[count][i] = (char)tolower((unsigned char)words[count][i]);
+    while (count < MAX_WORDS && fscanf(file, "%99s", word) == 1) {
+        // Ignore words that are not the correct length.
+        if (strlen(word) != WORD_LENGTH) {
+            continue;
         }
 
+        // Convert the word to lowercase.
+        for (int i = 0; i < WORD_LENGTH; i++) {
+            word[i] = (char)tolower((unsigned char)word[i]);
+        }
+        strcpy(words[count], word);
         count++;
     }
 
@@ -165,7 +169,7 @@ void play_game(void) {
     printf("=============================\n");
 
     printf("\n");
-    printf("Guess the 5-letter word!\n");
+    printf("Guess the %d-letter word!\n", WORD_LENGTH);
     printf("%sGreen%s  = correct position\n", GREEN, RESET);
     printf("%sYellow%s = correct letter\n", YELLOW, RESET);
     printf("%sGray%s   = not in the word\n", GRAY, RESET);
@@ -178,25 +182,26 @@ void play_game(void) {
                MAX_GUESSES);
 
         char guess[WORD_LENGTH + 1];
+        char input[100];
 
-        scanf("%5s", guess);
+        scanf("%99s", input);
 
-        // Convert guess to lowercase.
-        for (int i = 0; i < WORD_LENGTH; i++) {
-            guess[i] =
-                (char)tolower((unsigned char)guess[i]);
-        }
-        
-        // Make sure the guess is exactly 5 letters.
-        if (strlen(guess) != WORD_LENGTH) {
-            printf("Please enter exactly 5 letters.\n");
-
+        if (strlen(input) != WORD_LENGTH) {
+            printf("Please enter exactly %d letters.\n", WORD_LENGTH);
             attempt--;
             continue;
         }
 
+        // Convert input to lowercase.
+        for (int i = 0; i < WORD_LENGTH; i++) {
+            input[i] =
+                (char)tolower((unsigned char)input[i]);
+        }
 
-        //Store the guess on the board.
+        // Copy the input into guess.
+        strcpy(guess, input);
+
+        // Store the guess on the board.
         strcpy(board[attempt], guess);
 
         // Check if the player won.
