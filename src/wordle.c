@@ -54,6 +54,21 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENG
 
         printf("|");
 
+        // Keep track of which letters in the answer have already been matched.
+        int used[WORD_LENGTH] = {0};
+
+        // First pass: Find letters that are in the correct position.
+        for (int col = 0; col < WORD_LENGTH; col++) {
+            if (col >= (int)strlen(board[row])) {
+                continue;
+            }
+
+            if (board[row][col] == answer[col]) {
+                used[col] = 1;
+            }
+        }
+
+        // Second pass: Print each letter with the correct color.
         for (int col = 0; col < WORD_LENGTH; col++) {
             if (col >= (int)strlen(board[row])) {
                 printf("   |");
@@ -62,27 +77,33 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENG
 
             char letter = board[row][col];
 
-            // Green: Letter is in the correct position.
+            // GREEN: Correct letter and correct position.
             if (letter == answer[col]) {
                 printf(" %s%c%s |", GREEN, letter, RESET);
+                continue;
+            }
+
+            // Look for an unused matching letter somewhere else in the answer.
+            int yellow_position = -1;
+
+            for (int i = 0; i < WORD_LENGTH; i++)
+            {
+                if (!used[i] && letter == answer[i])
+                {
+                    yellow_position = i;
+                    break;
+                }
+            }
+
+            // YELLOW: Letter exists somewhere else and has not already been matched.
+            if (yellow_position != -1) {
+                used[yellow_position] = 1;
+
+                printf(" %s%c%s |", YELLOW, letter, RESET);
             }
             else {
-                int found = 0;
-
-                // Yellow: Letter exists somewhere else in the answer.
-                for (int i = 0; i < WORD_LENGTH; i++) {
-                    if (letter == answer[i]) {
-                        found = 1;
-                        break;
-                    }
-                }
-
-                if (found) {
-                    printf(" %s%c%s |", YELLOW, letter, RESET);
-                }
-                else {
-                    printf(" %s%c%s |", GRAY, letter, RESET);
-                }
+                // GRAY: No unused matching letter exists.
+                printf(" %s%c%s |", GRAY, letter, RESET);
             }
         }
 
@@ -91,7 +112,6 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENG
 
     print_line();
 }
-
 
 // Load words from words.txt.
 int load_words(char words[MAX_WORDS][WORD_LENGTH + 1])
