@@ -138,39 +138,54 @@ void print_typing_board(
         print_line();
         printf("|");
 
+        // Track which answer letters have already been matched.
+        int used[WORD_LENGTH] = {0};
+
+        // First pass: mark green letters as already matched.
+        if (row != current_row) {
+            for (int col = 0; col < WORD_LENGTH; col++) {
+                if (board[row][col] != '\0' &&
+                    board[row][col] == answer[col]) {
+                    used[col] = 1;
+                }
+            }
+        }
+
+        // Second pass: print each cell with its appropriate color.
         for (int col = 0; col < WORD_LENGTH; col++) {
             if (row == current_row) {
+                // Display the letters currently being typed.
                 if (current_guess[col] != '\0') {
                     printf(" %c |", current_guess[col]);
                 } else {
                     printf("   |");
                 }
-            } else if (board[row][col] != '\0') {
+            } else if (board[row][col] == '\0') {
+                printf("   |");
+            } else {
                 char letter = board[row][col];
 
-                // Determine the color using the answer.
-                int color = 0; // 0 = gray, 1 = yellow, 2 = green
-
+                // Green: correct letter in the correct position.
                 if (letter == answer[col]) {
-                    color = 2;
+                    printf(" %s%c%s |", GREEN, letter, RESET);
                 } else {
+                    // Find an unmatched occurrence in the answer.
+                    int yellow_position = -1;
+
                     for (int i = 0; i < WORD_LENGTH; i++) {
-                        if (letter == answer[i]) {
-                            color = 1;
+                        if (!used[i] && letter == answer[i]) {
+                            yellow_position = i;
                             break;
                         }
                     }
-                }
 
-                if (color == 2) {
-                    printf(" %s%c%s |", GREEN, letter, RESET);
-                } else if (color == 1) {
-                    printf(" %s%c%s |", YELLOW, letter, RESET);
-                } else {
-                    printf(" %s%c%s |", GRAY, letter, RESET);
+                    if (yellow_position != -1) {
+                        used[yellow_position] = 1;
+                        printf(" %s%c%s |", YELLOW, letter, RESET);
+                    } else {
+                        printf(" %s%c%s |", GRAY, letter, RESET);
+                    }
                 }
-            } else {
-                printf("   |");
             }
         }
 
