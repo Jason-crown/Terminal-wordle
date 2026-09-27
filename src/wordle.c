@@ -7,7 +7,7 @@
 
 #include "wordle.h"
 
-#define MAX_WORDS 100
+#define MAX_WORDS 10000
 
 // ANSI color escape sequences
 #define GREEN  "\033[32m"
