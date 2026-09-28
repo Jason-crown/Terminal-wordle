@@ -23,25 +23,6 @@ void print_line(void) {
     printf("\n");
 }
 
-// Print an empty board at the beginning of the game.
-void print_empty_board(char board[MAX_GUESSES][WORD_LENGTH + 1]) {
-    printf("\n");
-    for (int row = 0; row < MAX_GUESSES; row++) {
-        print_line();
-        printf("|");
-        for (int col = 0; col < WORD_LENGTH; col++) {
-            if (board[row][col] == '\0') {
-                printf("   |");
-            }
-            else {
-                printf(" %c |", board[row][col]);
-            }
-        }
-        printf("\n");
-    }
-    print_line();
-}
-
 // Print the board with colored letters.
 void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENGTH + 1]) {
 
@@ -54,13 +35,13 @@ void print_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char answer[WORD_LENG
         // Keep track of which letters in the answer have already been matched.
         int used[WORD_LENGTH] = {0};
 
-        // First pass: Find letters that are in the correct position.
+        // Find letters that are in the correct position.
         for (int col = 0; col < WORD_LENGTH; col++) {
             if (col >= (int)strlen(board[row])) continue;
             if (board[row][col] == answer[col]) used[col] = 1;
         }
 
-        // Second pass: Print each letter with the correct color.
+        // Print each letter with the correct color.
         for (int col = 0; col < WORD_LENGTH; col++) {
             if (col >= (int)strlen(board[row])) {
                 printf("   |");
@@ -136,7 +117,7 @@ void update_keyboard(char guess[WORD_LENGTH + 1], char answer[WORD_LENGTH + 1], 
     int used[WORD_LENGTH] = {0};
     char feedback[WORD_LENGTH] = {0};
 
-    // First pass: identify green letters.
+    // finds green letters.
     for (int i = 0; i < WORD_LENGTH; i++) {
         if (guess[i] == answer[i]) {
             feedback[i] = 'g';
@@ -144,7 +125,7 @@ void update_keyboard(char guess[WORD_LENGTH + 1], char answer[WORD_LENGTH + 1], 
         }
     }
 
-    // Second pass: identify yellow and gray letters.
+    // finds yellow and gray letters.
     for (int i = 0; i < WORD_LENGTH; i++) {
         if (feedback[i] == 'g') continue;
         feedback[i] = 'x';
@@ -159,7 +140,7 @@ void update_keyboard(char guess[WORD_LENGTH + 1], char answer[WORD_LENGTH + 1], 
         }
     }
 
-    // Update the keyboard, preserving the best color achieved.
+    // Update the keyboard, keeping the best color achieved.
     for (int i = 0; i < WORD_LENGTH; i++) {
         int index = guess[i] - 'a';
         char new_status = feedback[i];
@@ -167,6 +148,7 @@ void update_keyboard(char guess[WORD_LENGTH + 1], char answer[WORD_LENGTH + 1], 
         if (new_status == 'g' || (new_status == 'y' && old_status != 'g') || (new_status == 'x' && old_status == 0)) keyboard[index] = new_status;
     }
 }
+
 // Print the board while the player is typing.
 void print_typing_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char current_guess[WORD_LENGTH + 1], int current_row, int cursor, char answer[WORD_LENGTH + 1], const char *message, char keyboard[26]) {
     printf("\033[H\033[J");
@@ -187,7 +169,7 @@ void print_typing_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char current_g
         // Track which answer letters have already been matched.
         int used[WORD_LENGTH] = {0};
 
-        // First pass: mark green letters as already matched.
+        // mark green letters as already matched.
         if (row != current_row) {
             for (int col = 0; col < WORD_LENGTH; col++) {
                 if (board[row][col] != '\0' &&
@@ -197,11 +179,11 @@ void print_typing_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char current_g
             }
         }
 
-        // Second pass: print each cell with its appropriate color.
+        // print each box with its appropriate color.
         for (int col = 0; col < WORD_LENGTH; col++) {
             if (row == current_row) {
 
-                    // Highlight the selected cell with an underline.
+                    // Highlight the selected box with an underline.
                     if (col == cursor) {
                         if (current_guess[col] != '\0') {
                             printf(" \033[4;36m%c\033[0m |", current_guess[col]);
@@ -214,17 +196,16 @@ void print_typing_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char current_g
                     printf("   |");
                 }
             } else if (board[row][col] == '\0') {
-
                 printf("   |");
-
             } else {
 
-                char letter = board[row][col];
                 // Green: correct letter in the correct position.
+                char letter = board[row][col];
                 if (letter == answer[col]) {
                     printf(" %s%c%s |", GREEN, letter, RESET);
                 } else {
-                    // Find an unmatched occurrence in the answer.
+
+                    // Find an unmatched valid letter in the answer.
                     int yellow_position = -1;
                     for (int i = 0; i < WORD_LENGTH; i++) {
                         if (!used[i] && letter == answer[i]) {
@@ -272,7 +253,7 @@ void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH 
             exit(0);
         }
 
-        // Arrow keys return a prefix followed by a scan code.
+        // Arrow keys return a prefix + scan code.
         if (key == 0 || key == 224) {
             key = _getch();
 
@@ -285,17 +266,16 @@ void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH 
             else if (key == 77 && cursor < length) {
                 cursor++;
             }
-
             continue;
         }
 
-        // ENTER = submit only when all cells are filled.
+        // submit answer only when all boxes are filled.
         if (key == '\r') {
             if (length == WORD_LENGTH) break;
             continue;
         }
 
-        // BACKSPACE = remove the character before the cursor.
+        // remove the character.
         if (key == '\b') {
             if (cursor > 0) {
                 // Shift remaining letters left.
@@ -311,16 +291,16 @@ void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH 
             continue;
         }
 
-        // Accept letters and convert them to lowercase.
+        // Accept only letters and convert them to lowercase.
         if (isalpha((unsigned char)key)) {
             if (cursor < WORD_LENGTH) {
                 char letter = (char)tolower((unsigned char)key);
 
-                // Replace an existing letter or append at the end.
+                // Replace an existing letter or add it to the end.
                 guess[cursor] = letter;
-
-                if (cursor == length) length++;
-                
+                if (cursor == length) {
+                    length++;
+                }
                 cursor++;
                 guess[length] = '\0';
             }
@@ -330,6 +310,7 @@ void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH 
 
 // Load words from words.txt.
 int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
+
     // Open the words.txt file for reading.
     FILE *file = fopen("words.txt", "r");
     if (file == NULL) {
@@ -339,13 +320,18 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
 
     int count = 0;
     char word[100];
+    // Reads the file and stores words of the correct length.
     while (count < MAX_WORDS && fscanf(file, "%99s", word) == 1) {
 
         // Ignore words that are not the correct length.
-        if (strlen(word) != WORD_LENGTH) continue;
+        if (strlen(word) != WORD_LENGTH) {
+            continue;
+        }
 
         // Convert the word to lowercase.
-        for (int i = 0; i < WORD_LENGTH; i++) word[i] = (char)tolower((unsigned char)word[i]);
+        for (int i = 0; i < WORD_LENGTH; i++) {
+            word[i] = (char)tolower((unsigned char)word[i]);
+        }
         strcpy(words[count], word);
         count++;
     }
@@ -356,7 +342,9 @@ int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
 // Check if a guess exists in words.txt.
 int is_valid_word(char guess[WORD_LENGTH + 1], char words[MAX_WORDS][WORD_LENGTH + 1], int word_count) {
     for (int i = 0; i < word_count; i++) {
-        if (strcmp(guess, words[i]) == 0) return 1;
+        if (strcmp(guess, words[i]) == 0) {
+            return 1;
+        }
     }
     return 0;
 }
@@ -368,12 +356,9 @@ void play_game(void) {
     int word_count = load_words(words);
     if (word_count == 0) return;
 
-    // Seed the random number generator.
-    srand((unsigned int)time(NULL));
-
+    // Random number generator.
+    srand((unsigned int)time(NULL)); // seed with current time for randomness
     char answer[WORD_LENGTH + 1];
-
-    // Randomly select a word from the list as the answer.
     strcpy(answer, words[rand() % word_count]);
 
     char board[MAX_GUESSES][WORD_LENGTH + 1] = {0};
@@ -383,11 +368,9 @@ void play_game(void) {
     for (int attempt = 0; attempt < MAX_GUESSES; attempt++) {
         char guess[WORD_LENGTH + 1] = {0};
         get_guess(guess, board, attempt, answer, message, keyboard);
-
-        // Clear the previous message after submission.
         message[0] = '\0';
 
-        // Reject guesses not in words.txt.
+        // Check if the guess is in words.txt.
         if (!is_valid_word(guess, words, word_count)) {
             strcpy(message, "\033[31m That word is not in the word list. \033[0m");
             attempt--;
@@ -397,7 +380,7 @@ void play_game(void) {
         // Save the valid guess.
         strcpy(board[attempt], guess);
 
-        // Update keyboard colors based on this submitted guess.
+        // Update keyboard colors.
         update_keyboard(guess, answer, keyboard);
 
         // Check for a win.
@@ -409,7 +392,7 @@ void play_game(void) {
         }
     }
 
-    // All guesses used.
+    // When player is out of guesses
     print_board(board, answer);
     print_keyboard(keyboard);
     printf("\nThe word was: %s\n", answer);
