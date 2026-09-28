@@ -16,7 +16,6 @@
 #define GRAY   "\033[90m"
 #define RESET  "\033[0m"
 
-
 // Draw the top/bottom of the board.
 void print_line(void) {
     printf("+");
@@ -109,12 +108,18 @@ void print_key(char letter, char status) {
 void print_keyboard(char keyboard[26]) {
     const char *rows[] = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
     printf("\n\n");
+
+    // Print each row of the keyboard.
     for (int row = 0; row < 3; row++) {
+
         // Indent the lower rows to resemble a keyboard.
         if (row == 1) printf("   ");
         else if (row == 2) printf("      ");
+
         for (int i = 0; rows[row][i] != '\0'; i++) {
             char letter = rows[row][i];
+
+            // Print the letter with its current color based on previous guesses.
             print_key(letter, keyboard[letter - 'a']);
         }
         printf("\n");
@@ -138,6 +143,8 @@ void update_keyboard(char guess[WORD_LENGTH + 1], char answer[WORD_LENGTH + 1], 
     for (int i = 0; i < WORD_LENGTH; i++) {
         if (feedback[i] == 'g') continue;
         feedback[i] = 'x';
+
+        // Look for an unused matching letter in the answer.
         for (int j = 0; j < WORD_LENGTH; j++) {
             if (!used[j] && guess[i] == answer[j]) {
                 feedback[i] = 'y';
@@ -210,6 +217,7 @@ void print_typing_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char current_g
                             break;
                         }
                     }
+
                     if (yellow_position != -1) {
                         used[yellow_position] = 1;
                         printf(" %s%c%s |", YELLOW, letter, RESET);
@@ -234,8 +242,11 @@ void print_typing_board(char board[MAX_GUESSES][WORD_LENGTH + 1], char current_g
 
 // Get a guess one character at a time.
 void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH + 1], int current_row, char answer[WORD_LENGTH + 1], const char *message, char keyboard[26]) {
+
     int position = 0;
     guess[0] = '\0';
+
+    // Loop until the user submits a valid guess.
     while (1) {
         print_typing_board(board, guess, current_row, answer, message, keyboard);
         char key = _getch();
@@ -272,16 +283,20 @@ void get_guess(char guess[WORD_LENGTH + 1], char board[MAX_GUESSES][WORD_LENGTH 
 
 // Load words from words.txt.
 int load_words(char words[MAX_WORDS][WORD_LENGTH + 1]) {
+    // Open the words.txt file for reading.
     FILE *file = fopen("words.txt", "r");
     if (file == NULL) {
         printf("Could not open words.txt\n");
         return 0;
     }
+
     int count = 0;
     char word[100];
     while (count < MAX_WORDS && fscanf(file, "%99s", word) == 1) {
+
         // Ignore words that are not the correct length.
         if (strlen(word) != WORD_LENGTH) continue;
+
         // Convert the word to lowercase.
         for (int i = 0; i < WORD_LENGTH; i++) word[i] = (char)tolower((unsigned char)word[i]);
         strcpy(words[count], word);
@@ -302,14 +317,22 @@ int is_valid_word(char guess[WORD_LENGTH + 1], char words[MAX_WORDS][WORD_LENGTH
 // Play the Wordle game.
 void play_game(void) {
     char words[MAX_WORDS][WORD_LENGTH + 1];
+
     int word_count = load_words(words);
     if (word_count == 0) return;
+
+    // Seed the random number generator.
     srand((unsigned int)time(NULL));
+
     char answer[WORD_LENGTH + 1];
+
+    // Randomly select a word from the list as the answer.
     strcpy(answer, words[rand() % word_count]);
+
     char board[MAX_GUESSES][WORD_LENGTH + 1] = {0};
     char keyboard[26] = {0};
     char message[100] = "";
+
     for (int attempt = 0; attempt < MAX_GUESSES; attempt++) {
         char guess[WORD_LENGTH + 1] = {0};
         get_guess(guess, board, attempt, answer, message, keyboard);
