@@ -11,12 +11,9 @@
 void play_game(void)
 {
     char words[MAX_WORDS][WORD_LENGTH + 1];
-
     int word_count = load_words(words);
 
-    if (word_count == 0) {
-        return;
-    }
+    if (word_count == 0) return;
 
     // Random number generator.
     srand((unsigned int)time(NULL));
@@ -31,28 +28,15 @@ void play_game(void)
     for (int attempt = 0; attempt < MAX_GUESSES; attempt++) {
 
         char guess[WORD_LENGTH + 1] = {0};
-
-        get_guess(
-            guess,
-            board,
-            attempt,
-            answer,
-            message,
-            keyboard
-        );
-
+        get_guess(guess, board, attempt, answer, message, keyboard);
         message[0] = '\0';
 
         // Check if the guess is in words.txt.
         if (!is_valid_word(guess, words, word_count)) {
-            strcpy(
-                message,
-                "\033[31mThat word is not in the word list.\033[0m"
-            );
+            strcpy(message, "\033[31mThat word is not in the word list.\033[0m");
 
             // Invalid guesses do not use an attempt.
             attempt--;
-
             continue;
         }
 
@@ -66,9 +50,7 @@ void play_game(void)
         if (strcmp(guess, answer) == 0) {
             print_board(board, answer);
             print_keyboard(keyboard);
-
             printf("\n%sYou got it!%s\n\n", GREEN, RESET);
-
             return;
         }
     }
