@@ -1,10 +1,13 @@
-#ifndef WORDLE_H
-#define WORDLE_H
+#ifndef INPUT_H
+#define INPUT_H
 
-#define WORD_LENGTH 5
-#define MAX_GUESSES 6
-#define MAX_WORDS 10000
+#include "wordle.h"
 
-void play_game(void);
+void get_guess(char guess[WORD_LENGTH + 1],
+               char board[MAX_GUESSES][WORD_LENGTH + 1],
+               int current_row,
+               const char answer[WORD_LENGTH + 1],
+               const char *message,
+               const char keyboard[26]);
 
 #endif
